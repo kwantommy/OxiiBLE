@@ -3,7 +3,7 @@ int LED = 2;
 int stateLED = LOW;
 int stateButton;
 int previous = LOW;
-long time = 0;
+long t_ime = 0;
 long debounce = 200;
 
 void setup() {
@@ -13,14 +13,14 @@ void setup() {
 
 void loop() {
   stateButton = digitalRead(pinButton);  
-  if(stateButton == HIGH && previous == LOW && millis() - time > debounce) {
+  if(stateButton == HIGH && previous == LOW && millis() - t_ime > debounce) {
     if(stateLED == HIGH){
       stateLED = LOW; 
     } else {
        stateLED = HIGH; 
     }
-    time = millis();
+    t_ime = millis();
   }
   digitalWrite(LED, stateLED);
-  previous == stateButton;
+  previous = stateButton;
 }

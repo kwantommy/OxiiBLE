@@ -1,26 +1,25 @@
 #include <nRF5x_BLE_API.h>
-#include "Time.h"
+//#include "Ticker.h"
+//#include "mbed.h"
+
 // Device will be displayed as OxiiLabsBLE
 #define DEVICE_NAME       "OxiiLabsBLE"
 #define TXRX_BUF_LEN      20
 
 // Create ble instance
 BLE                       ble;
-
+int countData=0;
+int dataPoints=50;
 // Create a timer task
 Ticker                    ticker1s;
 
 #define ledPin            D13 
-#define buttonPin         D0 
-#define analogPin         D5
+#define buttonPin         D3 
 
-static volatile int buttonState = 1;
-int previous = LOW;
-//long time = 0;
-long debounce = 200;
+volatile byte state = LOW;
 
-uint8_t pressureReading = 0;
-uint8_t value[2] = {0x00, pressureReading};
+//uint8_t pressureReading = 0;
+//uint8_t value[2] = {0x00, pressureReading};
 
 // The uuid of service and characteristics
 static const uint8_t service1_uuid[]         = {0x99, 0x99, 0, 0, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
@@ -97,28 +96,49 @@ void setAdvertisement(void) {
   ble.accumulateScanResponse(GapAdvertisingData::COMPLETE_LOCAL_NAME,(const uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME) - 1);
 }
 
-void ISR_button() {
-  previous = buttonState;
-  buttonState = digitalRead(buttonPin);
-  if (buttonState == HIGH){
-    buttonState = 1;}
-  if (buttonState == HIGH) {
-//      digitalWrite(HIGH, stateLED);
-  }
-}
+//void ISR_button() {
+//  buttonState = digitalRead(buttonPin);
+//  digitalWrite(ledPin, buttonState);
+//  periodicCallback();
+//}
 
 void periodicCallback() {
-  if(buttonState == HIGH && previous == LOW) {
-    uint8_t buf[3];
-    uint16_t report_value = analogRead(A3);
-    buf[0] = (0x00);
-    buf[1] = (report_value >> 8);
-    buf[2] = (report_value);
-    ble.updateCharacteristicValue(characteristic3.getValueAttribute().getHandle(), buf, 3);  
-//    time = millis();
-    
+  if (countData <= dataPoints) {
+     digitalWrite(ledPin, 1);
+  uint8_t buf[3];
+uint16_t report_value = analogRead(A4);
+buf[0] = (0x00);
+buf[1] = (report_value >> 8);
+buf[2] = (report_value);
+ble.updateCharacteristicValue(characteristic3.getValueAttribute().getHandle(), buf, 3);
   }
+  else{
+     digitalWrite(ledPin, 0);
+    state = LOW;
+    detachInterrupt(buttonPin);
+   
+     //attachInterrupt(buttonPin,sampler,CHANGE);
+  }
+ countData++;
 } 
+
+
+
+
+  // Init timer task
+void sampler(){
+   // state = HIGH; //digitalRead(buttonPin);
+    if (countData <= dataPoints) {
+      ticker1s.attach(periodicCallback, 0.05);}
+    else{
+      countData=0;
+     // attachInterrupt(buttonPin,sampler,CHANGE);
+    }
+     
+     
+    //}
+ }
+
 
 
 // put your setup code here, to run once
@@ -133,14 +153,13 @@ void setup() {
   //Set on board LED as output to show on-off status
   //Set D1 as test read pin
   pinMode(ledPin, OUTPUT);
-  pinMode(buttonPin,INPUT);
+  pinMode(buttonPin,INPUT_PULLUP);
 
-  attachInterrupt(buttonPin,ISR_button,CHANGE);
+  attachInterrupt(buttonPin,sampler,CHANGE);
+  
+  
 
-  
-  // Init timer task
-  ticker1s.attach(periodicCallback, 1);
-  
+
   // Init ble
   ble.init();
   
