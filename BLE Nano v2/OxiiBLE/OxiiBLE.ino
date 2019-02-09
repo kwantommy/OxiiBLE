@@ -1,17 +1,10 @@
-/*
- * Copyright (c) 2016 RedBear
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
+/*Oxii Labs
+ * McMaster University - EE4BI6 Capstone 
+ * Code to implement communication between Android Application and BLE Nano V2
+ * Authors: Christine Horner, Mark Suan, Aditya Thakkar, Tommy Kwan
+ * Supervised by: Dr. Aleksander Jeremic & Dr. Hubert de Bruin
+ */ 
+ 
 #include <nRF5x_BLE_API.h>
 
 #define DEVICE_NAME       "OxiiBLE"
@@ -28,8 +21,6 @@ int countData = 0;
 int dataPoints = 50;
 // The uuid of service and characteristics
 static const uint8_t service1_uuid[]         = {0x99, 0x99, 0, 0, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
-static const uint8_t service1_chars1_uuid[]  = {0x71, 0x3D, 0, 2, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
-static const uint8_t service1_chars2_uuid[]  = {0x71, 0x3D, 0, 3, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
 static const uint8_t service1_chars3_uuid[]  = {0x99, 0x99, 0, 4, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
 // Used in advertisement
 static const uint8_t uart_base_uuid_rev[]    = {0x1E, 0x94, 0x8D, 0xF1, 0x48, 0x31, 0x94, 0xBA, 0x75, 0x4C, 0x3E, 0x50, 0, 0, 0x3D, 0x71};
@@ -40,10 +31,9 @@ uint8_t chars2_value[TXRX_BUF_LEN] = {1,2,3};
 uint8_t chars3_value[TXRX_BUF_LEN] = {0};
 
 // Create characteristic
-GattCharacteristic  characteristic1(service1_chars1_uuid, chars1_value, 1, TXRX_BUF_LEN, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE | GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_WRITE_WITHOUT_RESPONSE );
-GattCharacteristic  characteristic2(service1_chars2_uuid, chars2_value, 3, TXRX_BUF_LEN, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_READ);
+
 GattCharacteristic  characteristic3(service1_chars3_uuid, chars3_value, 1, TXRX_BUF_LEN, GattCharacteristic::BLE_GATT_CHAR_PROPERTIES_NOTIFY);
-GattCharacteristic *uartChars[] = {&characteristic1, &characteristic2, &characteristic3};
+GattCharacteristic *uartChars[] = {&characteristic3};
 //Create service
 GattService         uartService(service1_uuid, uartChars, sizeof(uartChars) / sizeof(GattCharacteristic *));
 
@@ -156,18 +146,18 @@ void gattServerWriteCallBack(const GattWriteCallbackParams *Handler) {
   }
   Serial.println(" ");
 
-  uint8_t buf[TXRX_BUF_LEN];
-  uint16_t bytesRead = 20;
-  Serial.println("Write Handle : ");
-  // Check the attribute belong to which characteristic
-  if (Handler->handle == characteristic1.getValueAttribute().getHandle()) {
-    // Read the value of characteristic
-    ble.readCharacteristicValue(characteristic1.getValueAttribute().getHandle(), buf, &bytesRead);
-    for(index=0; index<bytesRead; index++) {
-      Serial.print(buf[index], HEX);
-    }
-    Serial.println(" ");
-  }
+//  uint8_t buf[TXRX_BUF_LEN];
+//  uint16_t bytesRead = 20;
+//  Serial.println("Write Handle : ");
+//  // Check the attribute belong to which characteristic
+//  if (Handler->handle == characteristic1.getValueAttribute().getHandle()) {
+//    // Read the value of characteristic
+//    ble.readCharacteristicValue(characteristic1.getValueAttribute().getHandle(), buf, &bytesRead);
+//    for(index=0; index<bytesRead; index++) {
+//      Serial.print(buf[index], HEX);
+//    }
+//    Serial.println(" ");
+//  }
 }
 
 /**
