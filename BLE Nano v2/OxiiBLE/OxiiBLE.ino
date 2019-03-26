@@ -3,7 +3,7 @@
  * Code to implement communication between Android Application and BLE Nano V2
  * Authors: Christine Horner, Mark Suan, Aditya Thakkar, Tommy Kwan
  * Supervised by: Dr. Aleksander Jeremic & Dr. Hubert de Bruin
- * Last Edited - Sunday March 17
+ * Last Edited - Tuesday March 26
  */ 
  
 #include <nRF5x_BLE_API.h>
@@ -22,7 +22,7 @@ Ticker                    ticker1s;
 
 volatile byte state = LOW;
 int countData = 0;
-int dataPoints = 500;
+int dataPoints = 250;
 // The uuid of service and characteristics
 static const uint8_t service1_uuid[]         = {0x99, 0x99, 0, 0, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
 static const uint8_t service1_chars3_uuid[]  = {0x99, 0x99, 0, 4, 0x50, 0x3E, 0x4C, 0x75, 0xBA, 0x94, 0x31, 0x48, 0xF1, 0x8D, 0x94, 0x1E};
@@ -183,7 +183,12 @@ void task_handle(void) {
     Serial.println(countData);
     countData++;
     
-    if (countData > dataPoints) {
+    if (countData > dataPoints) { // 251st data point is FFFFFF to signifying start of next sequence
+    uint8_t buf[3];
+    buf[0] = (0xFF);
+    buf[1] = (0xFF);
+    buf[2] = (0xFF); 
+    ble.updateCharacteristicValue(characteristic3.getValueAttribute().getHandle(), buf, 3);
         Serial.println("resetting state to low");
       state = LOW;
       countData = 0;
@@ -198,6 +203,7 @@ void task_handle(void) {
     ble.updateCharacteristicValue(characteristic3.getValueAttribute().getHandle(), buf, 3);
 
   }
+  
 
 //  if (ble.getGapState().connected) {
 //      setColour(255, 0, 255); // blue Colour
@@ -268,7 +274,7 @@ void setup() {
   
   //attachInterrupt(buttonPin, sampler, FALLING);
   state = LOW;
-  ticker1s.attach(task_handle, 0.01); //introduces a 100 Hz noise when using a battery
+  ticker1s.attach(task_handle, 0.02); //introduces a 100 Hz noise when using a battery
   
   // Init ble
   ble.init();
